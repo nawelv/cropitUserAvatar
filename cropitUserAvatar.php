@@ -1,6 +1,6 @@
 <?php
 /**
-* Plugin Name: My Front-End Avatar
+* Plugin Name: cropitUserAvatar
 * Plugin URI: http://timple.it
 * Description: Add local avatar function whit a simple upload form in the front end by a short-code.
 * Version: 0.1
@@ -15,7 +15,7 @@ function frontEndForm() {
    if(get_current_user_id()){
 	   
    if(!empty($_GET["txt"])){
-	   $message = '<div class="mensaje"><p>' . $_GET["txt"] .'</p></div>';
+	   $message = '<div class="message"><p>' . esc_html($_GET["txt"]) .'</p></div>';
    } else {
 	   $message = '';
    }
@@ -23,11 +23,11 @@ function frontEndForm() {
   $return = '
   <style>
   
-	   .image-editor {
-		   text-align: center;
-		   width: 325px; 
-		   margin: auto;
-	   }
+      .image-editor {
+	text-align: center;
+	width: 325px; 
+	margin: auto;
+      }
   
       .cropit-preview {
         background-color: #f8f8f8;
@@ -37,13 +37,12 @@ function frontEndForm() {
         margin-top: 7px;
         width: 250px;
         height: 250px;
-		margin: auto;
-
+	margin: auto;
       }
 	  
-	  .image-editor input  {
-		  margin: 10px auto;
-	  }
+      .image-editor input  {
+	margin: 10px auto;
+      }
 
       .cropit-preview-image-container {
         cursor: move;
@@ -60,69 +59,54 @@ function frontEndForm() {
       button {
         margin-top: 10px;
       }
-	  
-	  .showOnload {
-		  display: none;
-	  }
+      
+      .showOnload {
+	display: none;
+      }
 	  
   </style>
+  '.$message.'
   
-	 '.$message.'
-  
-	<div class="image-editor">
+  <div class="image-editor">
 	
-      
       <div class="cropit-preview"></div>
-      
-	  <input type="file" class="cropit-image-input">
-	  
-	  <div class="image-size-label">
-        Arrastra, rota o agranda tu imagen.
+      <input type="file" class="cropit-image-input">
+      <div class="image-size-label">
+      	'. __('Drag, rotate or zoom your image.').'
       </div>
 	  
-	  <form action="" method="post" id="FrontEndAvatar" >
-	  
-	  <input type="range" class="cropit-image-zoom-input showOnload" style="">	  
-	  
-      <buttom type="buttom" href="javascript:;" class="rotate-preview showOnload btn">Rotar &#8634;</buttom>
-
-	  <input type="hidden" name="image-data-rotate" value="0" class="hidden-image-data-rotate" />
-	  <input type="hidden" name="image-data" class="hidden-image-data" />'.
-	  wp_nonce_field('nonce_upload','nonce_upload',true,false).'
-      <input type="submit" class="export btn" value="Guardar">
-	  
-	  </form>
-	  
-	  
+      <form action="" method="post" id="cropitUserAvatar" >
+	<input type="range" class="cropit-image-zoom-input showOnload" style="">	    
+      	<buttom type="buttom" href="javascript:;" class="rotate-preview showOnload btn">Rotar &#8634;</buttom>
+	<input type="hidden" name="image-data-rotate" value="0" class="hidden-image-data-rotate" />
+	<input type="hidden" name="image-data" class="hidden-image-data" />'.wp_nonce_field('nonce_upload','nonce_upload',true,false).'
+        <input type="submit" class="export btn" value="Guardar">
+      </form>
+      
     </div>
 	
-	<script>
-	
+    <script>
 	var avatarURL = "'. get_avatar_url(get_current_user_id(),array('size' => 200)) .'";
-	
-	</script>
-	
-  
-  ';
+    </script>
+';
   
   } else {
 	  
-	  $return = '
-	  <div class="image-editor">
-		<p>' . __('Debes estar logeado para poder editar tu avatar') .'</p>
-	  </div>
+    $return = '
+    <div class="image-editor">
+	<p>' . __('Debes estar logeado para poder editar tu avatar') .'</p>
+    </div>
 	  
-	  <script>
-		var avatarURL = "'. get_avatar_url(get_current_user_id()) .'";
-	  </script>	  
-	  ';
+    <script>
+	var avatarURL = "'. get_avatar_url(get_current_user_id()) .'";
+    </script>';
 	  
   }
-  
   
   return $return;
   
 }
+
 add_shortcode('myAvatarForm', 'frontEndForm');
 
 
@@ -130,12 +114,12 @@ function cropitAvatarForm_enqueue_script() {
     wp_enqueue_script( 'jquery.cropit', plugin_dir_url( __FILE__ ) . 'js/jquery.cropit.js', false, false, true);
 	wp_enqueue_script( 'cropit-init', plugin_dir_url( __FILE__ ) . 'js/cropit-init.js', false, false, true );
 }
+
 add_action('wp_enqueue_scripts', 'cropitAvatarForm_enqueue_script');
 
 
 
 function processAvatar(){
-	
 	
 	if(isset($_POST["image-data"])){
 	
@@ -162,27 +146,17 @@ function processAvatar(){
 			$rotate = 0;
 		}
 
-			
-
 		$savedImage = base64ToJpg($data,$upload_dir['basedir']."/usersAvatar",$user_ID."_avatar".uniqid()."_",$rotate);
 
-		
-
 		if($savedImage){			
-		
 		
 			$userAvatarMeta = update_user_meta( $user_ID, "localavatar", $savedImage);			
 
 			if($userAvatarMeta) {			
-
-				$mensajeError = "Se ha actualizado la imagen con exito.";
-			
+				$mensajeError = "Se ha actualizado la imagen con exito.";			
 			} else {
-
 				$mensajeError = "No se pudo guardar la imagen de perfil. Intenta nuevamente.";
-			}
-		
-
+			}		
 		} else {	
 
 			$mensajeError = "Hubo un error subiendo la imagen. Intenta nuevamente.";
